@@ -1,4 +1,4 @@
-# Resume_Projects_History
+# Resume, Projects, and work History
 My notable projects, patents, publications, and other info for background.
 
 I have 8 patents and various publications in technology fields related to Autonomous Vehicles.
