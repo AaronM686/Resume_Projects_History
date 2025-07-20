@@ -1,5 +1,98 @@
+// This is my solution for the "Balanced Brackets" challenge from HackerRank,
+// using a Stack. (See below for an alternate solution using Recursion)
+// <https://www.hackerrank.com/challenges/balanced-brackets/problem>
+// This is not a complete file, just the solution part,
+// where I filled-in the function as provided in the challenge.
+// This solution clears all tests.
 
-// This is my solution for the "Balanced Brackets" challenge from HackerRank.
+string isBalanced_stack(string s) {
+
+    // use a Stack to push the symbols, then pop the closing symbols to see if they match the opening symbols.
+
+    stack<char> MyStack;
+    char TempChar = 0;
+    
+    for (int i = 0; i < s.length(); i++)
+    {
+        switch (s[i]){
+            case '[':
+                MyStack.push(s[i]);
+                // MatchToFind =']';
+            break;
+            
+            case '{':
+                MyStack.push(s[i]);
+                //MatchToFind = '}';
+            break;
+            
+            case '(':
+                MyStack.push(s[i]);
+                //MatchToFind = ')';
+            break;
+            
+            case ')':
+                TempChar = MyStack.top(); 
+                if (MyStack.size() > 0){
+                        MyStack.pop();
+                    }
+                else {
+                        return string("NO");
+                    }
+                    
+                if (TempChar != '('){
+                    return string("NO");
+                }
+            break;
+                
+            case '}':
+                TempChar = MyStack.top(); 
+                if (MyStack.size() > 0){
+                        MyStack.pop();
+                    }
+                else {
+                        return string("NO");
+                    }
+                    
+                if (TempChar != '{'){
+                    return string("NO");
+                }
+            break;
+            
+            case ']':
+                TempChar = MyStack.top(); 
+                if (MyStack.size() > 0){
+                        MyStack.pop();
+                    }
+                else {
+                        return string("NO");
+                    }
+                if (TempChar != '['){
+                    return string("NO");
+                }
+            break;
+            
+            default:
+                printf("Logic Error! unknown symbol!\n");
+                return string("NO");
+        } // end switch statement
+        
+    } // end for i loop of every char in s
+    
+    // it had better be back to empty when we are done...
+    if (MyStack.size() == 0){
+        return string("YES");
+    }
+    else {
+        return string("NO");
+    }
+    
+} // end isBalanced_stack()
+
+
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+// This is my solution for the "Balanced Brackets" challenge from HackerRank,
+// using Recursion
 // <https://www.hackerrank.com/challenges/balanced-brackets/problem>
 // This is not a complete file, just the solution part,
 // where I filled-in the function as provided in the challenge.
