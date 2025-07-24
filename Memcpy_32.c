@@ -5,7 +5,7 @@
 #include <string.h> 
 #include <assert.h>
 
-#define WORD_BOUNDARY_SIZE_IN_BYTES 8
+#define WORD_BOUNDARY_SIZE_IN_BYTES 4
 
 size_t Memcpy_32 (void *pDest,const void *pSrc, size_t NumBytes){
 
@@ -20,11 +20,14 @@ size_t Memcpy_32 (void *pDest,const void *pSrc, size_t NumBytes){
     // debug printf
     printf("Src and Dest pointers misaligned from Word boundaries by %d and %d bytes\n",InitialAlignmentSrc,InitialAlignmentDest);
 
-    for (size_t i = 0; ((i < InitialAlignmentDest) && (NumBytesCoppied < NumBytes)); i++)
+    for (size_t i = 0; ((i < (WORD_BOUNDARY_SIZE_IN_BYTES - InitialAlignmentDest)) && (NumBytesCoppied < NumBytes)); i++)
     {   // copy one byte at a time, slow but works around alignment issues.
         pCharDest[i] = pCharSrc[i];
         NumBytesCoppied++;
     }
+
+    // verify that we are aligned after this initial few bytes copy...
+    assert( ((size_t)(&pCharDest[NumBytesCoppied])) % WORD_BOUNDARY_SIZE_IN_BYTES == 0);
 
     // If the pointers are aligned on word boundaries, and there is enough number of bytes to copy remaining
     //  to do this at least once without overflowing...
@@ -84,7 +87,7 @@ void main (void){
     // zero out the destination to verify we copy data into it...
     memset(&DestBuffer,0,TestBufferSize);
 
-    Memcpy_32(DestBuffer,TestBuffer,TestBufferSize);
+    size_t RetVal =  Memcpy_32(DestBuffer,TestBuffer,TestBufferSize);
 
 
     printf("Checking results...\n");
@@ -92,6 +95,7 @@ void main (void){
     for (size_t i = 0; i < TestBufferSize;i++) {
         assert (DestBuffer[i] == (i % __UINT8_MAX__));
     }
+    assert (RetVal == TestBufferSize);
     printf("Test 1 Results OK\n\n");
 
     ////////////  Test 2 /////////////////////////////////////////////////////
@@ -100,7 +104,7 @@ void main (void){
     memset(&DestBuffer,0,TestBufferSize);
 
     // intentionally misalign both the Src and Dest buffers by 1 byte
-    Memcpy_32(&DestBuffer[1],&TestBuffer[1],TestBufferSize-1);
+    RetVal =  Memcpy_32(&DestBuffer[1],&TestBuffer[1],TestBufferSize-1);
 
 
     printf("Checking results...\n");
@@ -109,6 +113,7 @@ void main (void){
     for (size_t i = 1; i < TestBufferSize - 1;i++) {
         assert (DestBuffer[i] == (i % __UINT8_MAX__));
     }
+    assert (RetVal == TestBufferSize-1);
     printf("Test 2 Results OK\n\n");
 
     ////////////  Test 3 /////////////////////////////////////////////////////
@@ -117,7 +122,7 @@ void main (void){
     memset(&DestBuffer,0,TestBufferSize);
 
     // intentionally misalign both the Src and Dest buffers by different bytes
-    Memcpy_32(&DestBuffer[1],&TestBuffer[3],TestBufferSize-3);
+    RetVal =  Memcpy_32(&DestBuffer[1],&TestBuffer[3],TestBufferSize-3);
 
 
     printf("Checking results...\n");
@@ -127,6 +132,7 @@ void main (void){
         // They are "skewed" by 2 bytes difference, so (i+2) before modulo, to check proper results
         assert (DestBuffer[i] == ((i+ 2) % __UINT8_MAX__));
     }
+    assert (RetVal == TestBufferSize-3);
     printf("Test 3 Results OK\n\n");
 
 
