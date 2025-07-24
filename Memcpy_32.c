@@ -20,36 +20,47 @@ size_t Memcpy_32 (void *pDest,const void *pSrc, size_t NumBytes){
     // debug printf
     printf("Src and Dest pointers misaligned from Word boundaries by %d and %d bytes\n",InitialAlignmentSrc,InitialAlignmentDest);
 
-    for (size_t i = 0; ((i < (WORD_BOUNDARY_SIZE_IN_BYTES - InitialAlignmentDest)) && (NumBytesCoppied < NumBytes)); i++)
-    {   // copy one byte at a time, slow but works around alignment issues.
-        pCharDest[i] = pCharSrc[i];
-        NumBytesCoppied++;
-    }
+    if (InitialAlignmentSrc == InitialAlignmentDest) {
 
-    // verify that we are aligned after this initial few bytes copy...
-    assert( ((size_t)(&pCharDest[NumBytesCoppied])) % WORD_BOUNDARY_SIZE_IN_BYTES == 0);
+        if (InitialAlignmentSrc != 0){
+            
+            printf("Copying %lu bytes to align to word boundaries...\n", WORD_BOUNDARY_SIZE_IN_BYTES - InitialAlignmentDest);
 
-    // If the pointers are aligned on word boundaries, and there is enough number of bytes to copy remaining
-    //  to do this at least once without overflowing...
-    if ((InitialAlignmentSrc == InitialAlignmentDest) && (NumBytesCoppied <= (NumBytes - sizeof(unsigned int))))
-    {
-
-        // assuming an architecture "word" length is equivalent to "unsigned int"
-        // Logic note: the NumBytesCoppied guard above prevents neagtive results from wrap-around to a large number !
-        size_t NumWordCopy =  (NumBytes - NumBytesCoppied) / sizeof(unsigned int);
-
-        // debug printf
-        printf("Copy by Word: %lu times\n",NumWordCopy);
-
-        // Pickup pointers _starting_from_the_new_alignment_...
-        unsigned int *pUIntDest = &pCharDest[NumBytesCoppied];
-        const unsigned int *pUIntSrc = &pCharSrc[NumBytesCoppied];
-
-        for (size_t i = 0; i < NumWordCopy; i++)
-        {   // copy one word at a time
-            pUIntDest[i] = pUIntSrc[i];
-            NumBytesCoppied += sizeof(unsigned int);
+            for (size_t i = 0; ((i < (WORD_BOUNDARY_SIZE_IN_BYTES - InitialAlignmentDest)) && (NumBytesCoppied < NumBytes)); i++)
+            {   // copy one byte at a time, slow but works around alignment issues.
+                pCharDest[i] = pCharSrc[i];
+                NumBytesCoppied++;
+            }
         }
+
+        // verify that we are aligned after this initial few bytes copy...
+        assert( ((size_t)(&pCharDest[NumBytesCoppied])) % WORD_BOUNDARY_SIZE_IN_BYTES == 0);
+
+        // If the pointers are aligned on word boundaries, and there is enough number of bytes to copy remaining
+        //  to do this at least once without overflowing...
+        if ((InitialAlignmentSrc == InitialAlignmentDest) && (NumBytesCoppied <= (NumBytes - sizeof(unsigned int))))
+        {
+
+            // assuming an architecture "word" length is equivalent to "unsigned int"
+            // Logic note: the NumBytesCoppied guard above prevents neagtive results from wrap-around to a large number !
+            size_t NumWordCopy =  (NumBytes - NumBytesCoppied) / sizeof(unsigned int);
+
+            // debug printf
+            printf("Copy by Word: %lu times\n",NumWordCopy);
+
+            // Pickup pointers _starting_from_the_new_alignment_...
+            unsigned int *pUIntDest = &pCharDest[NumBytesCoppied];
+            const unsigned int *pUIntSrc = &pCharSrc[NumBytesCoppied];
+
+            for (size_t i = 0; i < NumWordCopy; i++)
+            {   // copy one word at a time
+                pUIntDest[i] = pUIntSrc[i];
+                NumBytesCoppied += sizeof(unsigned int);
+            }
+        }
+    }
+    else{
+        printf("Misaligned copy Source vs Destination Pointers, unable to copy-by-Word...\n");
     }
 
     // This loop should start from NumBytesCoppied, not restarting from another "Remainder bytes" calculation!
@@ -143,6 +154,7 @@ void main (void){
 
 // Example output:
 /*
+
 ./Memcpy_32
 Src and Dest pointers misaligned from Word boundaries by 0 and 0 bytes
 Copy by Word: 1024 times
@@ -151,14 +163,17 @@ Checking results...
 Test 1 Results OK
 
 Src and Dest pointers misaligned from Word boundaries by 1 and 1 bytes
+Copying 3 bytes to align to word boundaries...
 Copy by Word: 1023 times
-Copy remaining 2 bytes
+Copy remaining 0 bytes
 Checking results...
 Test 2 Results OK
 
 Src and Dest pointers misaligned from Word boundaries by 3 and 1 bytes
-Copy remaining 4092 bytes
+Misaligned copy Source vs Destination Pointers, unable to copy-by-Word...
+Copy remaining 4093 bytes
 Checking results...
 Test 3 Results OK
+
 
 */
