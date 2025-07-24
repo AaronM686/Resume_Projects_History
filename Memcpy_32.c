@@ -124,7 +124,7 @@ void main (void){
     // Verify the test pattern still appears in the destination
     // (Skip the first byte which we intentionally did not copy)
     for (size_t i = 1; i < TestBufferSize - 3;i++) {
-        // They are "skewed" by 2 bytes difference, so i+_2 before modulo, to check proper results
+        // They are "skewed" by 2 bytes difference, so (i+2) before modulo, to check proper results
         assert (DestBuffer[i] == ((i+ 2) % __UINT8_MAX__));
     }
     printf("Test 3 Results OK\n\n");
@@ -133,3 +133,26 @@ void main (void){
 
 } // end main() function
 
+
+
+// Example output:
+/*
+./Memcpy_32
+Src and Dest pointers misaligned from Word boundaries by 0 and 0 bytes
+Copy by Word: 1024 times
+Copy remaining 0 bytes
+Checking results...
+Test 1 Results OK
+
+Src and Dest pointers misaligned from Word boundaries by 1 and 1 bytes
+Copy by Word: 1023 times
+Copy remaining 2 bytes
+Checking results...
+Test 2 Results OK
+
+Src and Dest pointers misaligned from Word boundaries by 3 and 1 bytes
+Copy remaining 4092 bytes
+Checking results...
+Test 3 Results OK
+
+*/
